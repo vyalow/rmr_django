@@ -1,10 +1,25 @@
 from django import forms
+from django.core import validators
 
 
-class MultiValueField(forms.TypedMultipleChoiceField):
+class CharField(forms.CharField):
 
-    def valid_value(self, value):
-        return True
+    def to_python(self, value):
+        if value is None:
+            return None
+        return super().to_python(value)
+
+
+class EmailField(CharField):
+    widget = forms.widgets.EmailInput
+    default_validators = [validators.validate_email]
+
+    def clean(self, value):
+        if isinstance(value, str):
+            value = self.to_python(value).strip()
+        else:
+            value = self.to_python(value)
+        return super(EmailField, self).clean(value)
 
 
 class BooleanField(forms.Field):
@@ -15,6 +30,12 @@ class BooleanField(forms.Field):
         if value in (True, False):
             return value
         return None
+
+
+class MultiValueField(forms.TypedMultipleChoiceField):
+
+    def valid_value(self, value):
+        return True
 
 
 class OffsetLimit(forms.Form):
